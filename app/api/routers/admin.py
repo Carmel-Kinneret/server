@@ -50,11 +50,6 @@ async def admin_update_poi(
         poi.type = poi_update.type
     if poi_update.imageUrl is not None:
         poi.imageUrl = poi_update.imageUrl
-    if poi_update.lat is not None:
-        poi.lat = poi_update.lat
-        poi.geojson = {"type": "Point", "coordinates": [poi.lon, poi.lat]}
-    if poi_update.lon is not None:
-        poi.lon = poi_update.lon
         poi.geojson = {"type": "Point", "coordinates": [poi.lon, poi.lat]}
     if poi_update.metadata is not None:
         poi.metadata = poi_update.metadata
