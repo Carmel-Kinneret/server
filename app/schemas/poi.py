@@ -8,7 +8,7 @@ class POIBase(BaseModel):
     type: POIType
     imageUrl: Optional[str] = None
     geojson: Optional[Dict[str, Any]] = Field(
-        default=None,
+        default_factory=dict,
         validation_alias=AliasChoices("geojson", "poi_geojson"),
         serialization_alias="geojson"
     )
@@ -26,16 +26,12 @@ class POIUpdate(BaseModel):
         validation_alias=AliasChoices("metadata", "poi_metadata"),
         serialization_alias="metadata"
     )
-    geojson: Optional[Dict[str, Any]] = Field(
-        default=None,
-        validation_alias=AliasChoices("geojson", "poi_geojson"),
-        serialization_alias="geojson"
-    )
+
     isActive: Optional[bool] = None
 
 class POIInDB(POIBase):
     id: str
-    geoJson: Dict[str, Any]
+    geojson: Dict[str, Any]
     isActive: bool
     createdAt: datetime
     updatedAt: Optional[datetime] = None

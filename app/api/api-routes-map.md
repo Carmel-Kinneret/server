@@ -40,13 +40,14 @@ All routes (except public read routes for Guests) require the Clerk JWT to be pa
 ---
 
 ### **4. Admin & Moderation**
-*Strictly enforces an `Admin` role check in the FastAPI dependency layer. Uses `PATCH` for soft deletes to maintain referential integrity.*
+*Strictly enforces an `Admin` role check in the FastAPI dependency layer. Uses `DELETE` for hard removals and `PATCH` for soft‑delete toggles where appropriate.*
 
 | Method | Endpoint | Query Params | Request Body | Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **PATCH** | `/api/admin/posts/{postId}` | None | `{ isActive: boolean }` | `Post` (Updated) | Soft deletes or restores a user post that violates guidelines. |
+| **DELETE** | `/api/admin/posts/{postId}` | None | None | `Post` (Deleted) | Deletes a post (hard delete). |
 | **PATCH** | `/api/admin/pois/{poiId}` | None | `{ isActive: boolean }` | `POI` (Updated) | Soft deletes or restores a POI (e.g., if a trail section closes). |
-| **POST** | `/api/admin/pois` | None | `{ title: string, type: 'EVENT', imageUrl: string?, lat: float, lon: float, metadata: JSON }` | `POI` (Created) | Creates a dynamic event marker on the map. |
+| **POST** | `/api/admin/poi` | None | `{ title: string, type: 'EVENT', imageUrl: string?, geojson: { "type": "Point", "coordinates": [lon, lat] }, metadata: JSON }` | `POI` (Created) | Creates a dynamic event marker on the map. |
+| **DELETE** | `/api/admin/pois/{poiId}` | None | None | `POI` (Deleted) | Soft deletes a POI. |
 
 ---
 

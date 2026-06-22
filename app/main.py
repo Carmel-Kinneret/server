@@ -30,22 +30,11 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_async_session
 from app.api.router import api_router
-from app.db.database import engine
-from app.models.base import Base
 
-@contextlib.asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Recreate database tables to match current models (development only)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    await engine.dispose()
 
 app = FastAPI(
     title=PROJECT_NAME,
     openapi_url=f"{API_V1_STR}/openapi.json",
-    lifespan=lifespan
 )
 
 # Set up CORS
@@ -73,14 +62,13 @@ async def root():
 
 @app.get("/db/ping")
 async def db_ping(db: AsyncSession = Depends(get_async_session)):
-    """Health‑check endpoint that verifies DB connectivity.
+    """Health-check endpoint that verifies DB connectivity.
 
     Executes a lightweight ``SELECT 1`` query. Returns ``{"status": "ok", "result": 1}``
     on success or ``{"status": "error", "detail": <error>}`` on failure.
     """
     try:
         result = await db.execute(text("SELECT 1"))
-        # result.scalar() returns the integer 1
         return {"status": "ok", "result": result.scalar()}
     except Exception as exc:
         return {"status": "error", "detail": str(exc)}

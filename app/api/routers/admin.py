@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Path, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from typing import List
 from app.db.database import get_db
 from app.models.user import User as UserModel
 from app.models.post import Post as PostModel
@@ -12,7 +13,17 @@ from app.core.exceptions import NotFoundException
 
 router = APIRouter(dependencies=[Depends(get_current_admin)])
 
-@router.patch("/posts/{postId}", response_model=PostSchema)
+@router.delete("/posts/{postId}", response_model=PostSchema)
+async def admin_delete_post(
+    postId: str = Path(...), db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(PostModel).where(PostModel.id == postId))
+    post = result.scalars().first()
+    if not post:
+        raise NotFoundException(message="Resource not found or has been removed.")
+    await db.delete(post)
+    await db.commit()
+    return post
 async def admin_update_post(
     postId: str = Path(...),
     post_update: PostUpdate = Body(...),
@@ -82,3 +93,14 @@ async def admin_create_poi(
     await db.commit()
     await db.refresh(db_poi)
     return db_poi
+
+@router.delete("/pois/{poiId}", response_model=POISchema)
+async def admin_delete_poi(poiId: str = Path(...), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(POIModel).where(POIModel.id == poiId))
+    poi = result.scalars().first()
+    if not poi:
+        raise NotFoundException(message="Resource not found or has been removed.")
+    await db.delete(poi)
+    await db.commit()
+    return poi
+
