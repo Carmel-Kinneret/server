@@ -75,12 +75,14 @@ async def root():
 
 @app.get("/db/ping")
 async def db_ping(db: AsyncSession = Depends(get_async_session)):
-    """Simple health-check that runs a `SELECT 1` query against the configured database.
-    Returns `{status: "ok", result: 1}` on success or `{status: "error", detail: <error>}` on failure.
+    """Health‑check endpoint that verifies DB connectivity.
+
+    Executes a lightweight ``SELECT 1`` query. Returns ``{"status": "ok", "result": 1}``
+    on success or ``{"status": "error", "detail": <error>}`` on failure.
     """
     try:
-        result = await db.execute(text("SELECT * FROM user"))
-        # No commit needed for a read‑only query, but we ensure the session is clean.
-        return {"status": "ok", "result": result}
+        result = await db.execute(text("SELECT 1"))
+        # result.scalar() returns the integer 1
+        return {"status": "ok", "result": result.scalar()}
     except Exception as exc:
         return {"status": "error", "detail": str(exc)}
