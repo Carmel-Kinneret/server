@@ -73,7 +73,7 @@ async def create_post(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    geoJson = {
+    geojson = {
         "type": "Point",
         "coordinates": [post_in.lon, post_in.lat]
     }
@@ -84,7 +84,7 @@ async def create_post(
         caption=post_in.caption,
         lat=post_in.lat,
         lon=post_in.lon,
-        geoJson=geoJson,
+        geojson=geojson,
         isActive=True
     )
     

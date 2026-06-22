@@ -1,26 +1,31 @@
 from pathlib import Path
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from typing import AsyncGenerator
 
-# Load .env from project root (4 levels up from this file)
-repo_root = Path(__file__).resolve().parents[4]
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+# Load environment variables from the project's .env (located at server/.env)
+repo_root = Path(__file__).resolve().parents[2]
 load_dotenv(repo_root / ".env")
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
-# Ensure asyncpg driver for PostgreSQL
+# Retrieve DATABASE_URL from env
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL not set in environment variables")
+
+# Ensure asyncpg driver for PostgreSQL URLs
 if DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
-# Create the async engine
+# Create the async SQLAlchemy engine
 engine = create_async_engine(
     DATABASE_URL,
-    echo=False,
+    echo=False,  # set to True for query logging
     future=True,
 )
 
-# Create an async session maker
+# Async session factory
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -28,12 +33,10 @@ AsyncSessionLocal = async_sessionmaker(
     autoflush=False,
 )
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI dependency that provides an async database session.
-    Automatically closes the session when the request is finished.
-    """
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    """FastAPI dependency that yields an async DB session and ensures cleanup."""
     async with AsyncSessionLocal() as session:
         yield session
 
-# Compatibility alias for routers expecting get_async_session
-get_async_session = get_db
+# Compatibility alias (some modules may import get_db)
+get_db = get_async_session

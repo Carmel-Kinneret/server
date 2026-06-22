@@ -13,8 +13,8 @@ All routes (except public read routes for Guests) require the Clerk JWT to be pa
 
 | Method | Endpoint | Query Params | Request Body | Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **GET** | `/api/trails` | None | None | `Array<TrailSection>` | Returns the 8 main trail sections, including their GeoJSON LineStrings and `orderIndex`. |
-| **GET** | `/api/pois` | `type` (optional: 'MAIN', 'EVENT') | None | `Array<POI>` | Returns active POIs. Includes `imageUrl`, discriminated `metadata` JSONB object, and GeoJSON Point. |
+| **GET** | `/api/trails` | None | None | `Array<TrailSection>` | Returns the 8 main trail sections, including their geojson LineStrings and `orderIndex`. |
+| **GET** | `/api/pois` | `type` (optional: 'MAIN', 'EVENT') | None | `Array<POI>` | Returns active POIs. Includes `imageUrl`, discriminated `metadata` JSONB object, and geojson Point. |
 
 ---
 

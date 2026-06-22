@@ -32,7 +32,7 @@ The backend is built using **FastAPI** to take advantage of its async capabiliti
 
 The database schema heavily relies on PostgreSQL's `JSONB` data type to support flexible data storage, specifically:
 
-- **GeoJSON**: `TrailSection`, `PointOfInterest`, and `Post` use `JSONB` columns to store `geoJson` geometry points and lines. This keeps the schema simple without requiring `PostGIS` initially, while still allowing the client to consume standard GeoJSON.
+- **geojson**: `TrailSection`, `PointOfInterest`, and `Post` use `JSONB` columns to store `geojson` geometry points and lines. This keeps the schema simple without requiring `PostGIS` initially, while still allowing the client to consume standard geojson.
 - **Metadata**: `PointOfInterest` uses a `metadata` `JSONB` column to store type-specific properties (e.g., whether a spring has potable water, or the date of an event), simulating a lightweight Single Table Inheritance pattern.
 
 ## Authentication Flow

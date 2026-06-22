@@ -17,7 +17,7 @@ class PostUpdate(BaseModel):
 class PostInDB(PostBase):
     id: str
     userId: str
-    geoJson: Dict[str, Any]
+    geojson: Dict[str, Any]
     isActive: bool
     createdAt: datetime
     updatedAt: Optional[datetime] = None

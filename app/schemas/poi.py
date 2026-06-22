@@ -33,7 +33,7 @@ class POIUpdate(BaseModel):
 
 class POIInDB(POIBase):
     id: str
-    geoJson: Dict[str, Any]
+    geojson: Dict[str, Any]
     isActive: bool
     createdAt: datetime
     updatedAt: Optional[datetime] = None

@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 class TrailSectionBase(BaseModel):
     name: str
-    geoJson: Dict[str, Any]  # Store LineString GeoJSON object
+    geojson: Dict[str, Any]  # Store LineString geojson object
     orderIndex: int
 
 class TrailSectionCreate(TrailSectionBase):
@@ -12,7 +12,7 @@ class TrailSectionCreate(TrailSectionBase):
 
 class TrailSectionUpdate(BaseModel):
     name: Optional[str] = None
-    geoJson: Optional[Dict[str, Any]] = None
+    geojson: Optional[Dict[str, Any]] = None
     orderIndex: Optional[int] = None
 
 class TrailSectionInDB(TrailSectionBase):
