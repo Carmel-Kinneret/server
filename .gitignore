@@ -1,0 +1,57 @@
+# Python & FastAPI project .gitignore
+# Byte‑compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+*.egg-info/
+.dist/
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy cache
+.mypy_cache/
+
+# VS Code settings
+.vscode/
+
+# IDE / editor backups
+*~
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# dotenv files (keep them out of version control)
+.env
+.env.*
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+*.tmp
+
+# Database files (if any SQLite used locally)
+*.sqlite3
+
+# Docker files (optional, keep if you have Dockerfiles)
+Dockerfile
+.dockerignore
+
+# Other specific to this repo – you can add more patterns as needed.
