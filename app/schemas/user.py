@@ -22,3 +22,6 @@ class UserInDBBase(UserBase):
 
 class User(UserInDBBase):
     pass
+class UserRead(UserInDBBase):
+    """Schema used for responses – includes all DB fields"""
+    pass
