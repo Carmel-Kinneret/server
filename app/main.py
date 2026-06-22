@@ -2,7 +2,15 @@ import contextlib
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.exceptions import AppException, app_exception_handler
+from app.core.exceptions import (
+    AppException,
+    app_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+    generic_exception_handler,
+)
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.router import api_router
 from app.db.database import engine
 from app.models.base import Base
@@ -35,6 +43,9 @@ app.add_middleware(
 
 # Global Exception Handlers
 app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
 
 # Include API Router
 app.include_router(api_router, prefix=settings.API_V1_STR)

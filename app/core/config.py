@@ -2,10 +2,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Carmel Kinneret Server"
-    API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/api"
     
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/carmel_kinneret"
+    # Database URL is read from .env (DATABASE_URL). Fallback to local SQLite for dev.
+    DATABASE_URL: str = "sqlite+aiosqlite:///./test.db"
     
     # Clerk Authentication
     CLERK_ISSUER: str = ""

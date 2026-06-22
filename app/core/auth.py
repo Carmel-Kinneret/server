@@ -11,7 +11,12 @@ from sqlalchemy import select
 from app.db.database import get_db
 from app.models.user import User
 
+from typing import Optional
+from app.models.user import User, Role
+from app.core.exceptions import ForbiddenException
+
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 def get_jwks():
     if not settings.CLERK_ISSUER:
@@ -71,7 +76,41 @@ async def get_current_user(
     user = result.scalars().first()
     
     if not user:
-        # Optionally create user if not found, or raise exception
-        raise UnauthorizedException(message="User not found in database.")
+        user = User(clerkId=clerk_id, role=Role.USER)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
     
     return user
+
+async def get_optional_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
+    db: AsyncSession = Depends(get_db)
+) -> Optional[User]:
+    if not credentials:
+        return None
+    try:
+        token_payload = await verify_token(credentials)
+        clerk_id = token_payload.get("sub")
+        if not clerk_id:
+            return None
+        
+        result = await db.execute(select(User).where(User.clerkId == clerk_id))
+        user = result.scalars().first()
+        
+        if not user:
+            user = User(clerkId=clerk_id, role=Role.USER)
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+        return user
+    except Exception:
+        return None
+
+async def get_current_admin(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    if current_user.role != Role.ADMIN:
+        raise ForbiddenException(message="Admin role check failed: Access denied.")
+    return current_user
+
