@@ -10,7 +10,7 @@ class Role(str, enum.Enum):
     ADMIN = "ADMIN"
 
 class User(Base):
-    __tablename__ = "User"
+    __tablename__ = "user"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     clerkId = Column(String, unique=True, nullable=True)

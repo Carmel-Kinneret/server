@@ -4,7 +4,17 @@ from jose import jwt, jwk
 from jose.utils import base64url_decode
 import urllib.request
 import json
-from app.core.config import settings
+from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+# Load .env (project root is 4 levels up from this file)
+repo_root = Path(__file__).resolve().parents[4]
+load_dotenv(repo_root / ".env")
+
+# Clerk configuration from environment variables
+CLERK_ISSUER = os.getenv("CLERK_ISSUER", "")
+CLERK_FRONTEND_API = os.getenv("CLERK_FRONTEND_API", "")
 from app.core.exceptions import UnauthorizedException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -19,9 +29,9 @@ security = HTTPBearer()
 security_optional = HTTPBearer(auto_error=False)
 
 def get_jwks():
-    if not settings.CLERK_ISSUER:
+    if not CLERK_ISSUER:
         raise ValueError("CLERK_ISSUER environment variable is not set")
-    jwks_url = f"{settings.CLERK_ISSUER}/.well-known/jwks.json"
+    jwks_url = f"{CLERK_ISSUER}/.well-known/jwks.json"
     response = urllib.request.urlopen(jwks_url)
     return json.loads(response.read())
 
@@ -51,8 +61,8 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
                 token,
                 rsa_key,
                 algorithms=["RS256"],
-                audience=settings.CLERK_FRONTEND_API,
-                issuer=settings.CLERK_ISSUER
+                audience=CLERK_FRONTEND_API,
+                issuer=CLERK_ISSUER
             )
             return payload
         raise UnauthorizedException(message="Unable to find appropriate key.")

@@ -1,15 +1,23 @@
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from supabase import create_client, Client
-from app.core.config import settings
+from dotenv import load_dotenv
+import os
 
+# Load .env from project root (4 levels up from this file)
+repo_root = Path(__file__).resolve().parents[4]
+load_dotenv(repo_root / ".env")
+
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 # Initialize the Supabase Client using the service role key for full admin access
-if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
-    # We define a dummy client or placeholder for testing/graceful import
+if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+    # Dummy client when env vars missing (e.g., during tests)
     supabase: Optional[Client] = None
 else:
     supabase: Optional[Client] = create_client(
-        settings.SUPABASE_URL, 
-        settings.SUPABASE_SERVICE_ROLE_KEY
+        SUPABASE_URL,
+        SUPABASE_SERVICE_ROLE_KEY,
     )
 
 # =====================================================================

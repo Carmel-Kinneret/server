@@ -10,6 +10,7 @@ router = APIRouter()
 @router.get("/", response_model=list[UserRead])
 async def list_users(session: AsyncSession = Depends(get_async_session)):
     result = await session.execute(select(User))
+    print(result)
     users = result.fetchall()
     return [UserRead.from_orm(u) for u in users]
 

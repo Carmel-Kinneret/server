@@ -1,7 +1,20 @@
 import contextlib
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from project root .env
+repo_root = Path(__file__).resolve().parents[3]
+load_dotenv(repo_root / ".env")
+
+# Core config values
+PROJECT_NAME = os.getenv("PROJECT_NAME", "Carmel Kinneret Server")
+API_V1_STR = os.getenv("API_V1_STR", "/api")
+
 from app.core.exceptions import (
     AppException,
     app_exception_handler,
@@ -9,8 +22,6 @@ from app.core.exceptions import (
     validation_exception_handler,
     generic_exception_handler,
 )
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.router import api_router
 from app.db.database import engine
 from app.models.base import Base
@@ -27,8 +38,8 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    title=PROJECT_NAME,
+    openapi_url=f"{API_V1_STR}/openapi.json",
     lifespan=lifespan
 )
 
@@ -48,8 +59,8 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
 
 # Include API Router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router, prefix=API_V1_STR)
 
 @app.get("/")
 async def root():
-    return {"message": f"Welcome to {settings.PROJECT_NAME} API"}
+    return {"message": f"Welcome to {PROJECT_NAME} API"}
