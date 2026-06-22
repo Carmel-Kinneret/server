@@ -24,3 +24,5 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     async with AsyncSessionLocal() as session:
         yield session
+# Compatibility alias for routers expecting get_async_session
+get_async_session = get_db

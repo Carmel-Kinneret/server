@@ -1,25 +1,49 @@
-from fastapi import APIRouter, Depends
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.db.database import get_db
-from app.models.user import User as UserModel
-from app.schemas.user import User as UserSchema
-from app.core.auth import get_current_user
+from app.db.database import get_db as get_async_session
+from sqlalchemy import select, text
+from app.models.user import User
+from app.schemas.user import UserCreate, UserRead, UserUpdate
 
 router = APIRouter()
 
-@router.get("/me", response_model=UserSchema)
-async def read_users_me(current_user: UserModel = Depends(get_current_user)):
-    return current_user
+@router.get("/", response_model=list[UserRead])
+async def list_users(session: AsyncSession = Depends(get_async_session)):
+    result = await session.execute(select(User))
+    users = result.fetchall()
+    return [UserRead.from_orm(u) for u in users]
 
-@router.get("/", response_model=List[UserSchema])
-async def read_users(
-    skip: int = 0, 
-    limit: int = 100, 
-    db: AsyncSession = Depends(get_db)
-    # Admin only dependency could be added here
-):
-    result = await db.execute(select(UserModel).offset(skip).limit(limit))
-    users = result.scalars().all()
-    return users
+@router.get("/{user_id}", response_model=UserRead)
+async def get_user(user_id: str, session: AsyncSession = Depends(get_async_session)):
+    user = await session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserRead.from_orm(user)
+
+@router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+async def create_user(payload: UserCreate, session: AsyncSession = Depends(get_async_session)):
+    user = User(**payload.dict())
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return UserRead.from_orm(user)
+
+@router.put("/{user_id}", response_model=UserRead)
+async def update_user(user_id: str, payload: UserUpdate, session: AsyncSession = Depends(get_async_session)):
+    user = await session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    for key, value in payload.dict(exclude_unset=True).items():
+        setattr(user, key, value)
+    await session.commit()
+    await session.refresh(user)
+    return UserRead.from_orm(user)
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(user_id: str, session: AsyncSession = Depends(get_async_session)):
+    user = await session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    await session.delete(user)
+    await session.commit()
+    return None
