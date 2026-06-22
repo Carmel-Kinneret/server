@@ -14,8 +14,6 @@ class PointOfInterest(Base):
     title = Column(String, nullable=False)
     type = Column(Enum(POIType, name="POIType"), nullable=False, default=POIType.MAIN)
     imageUrl = Column(String, nullable=True)
-    lat = Column(Float, nullable=False)
-    lon = Column(Float, nullable=False)
     geojson = Column(JSON, nullable=False)  # Stores the geojson Point
     poi_metadata = Column("metadata", JSON, nullable=True, default=dict)  # Mapped to 'metadata' column to avoid SQLAlchemy namespace conflict
     isActive = Column(Boolean, default=True, nullable=False)

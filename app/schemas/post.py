@@ -5,9 +5,7 @@ from pydantic import BaseModel, ConfigDict
 class PostBase(BaseModel):
     imageUrl: str
     caption: Optional[str] = None
-    lat: float
-    lon: float
-
+    geojson: Dict[str, Any]
 class PostCreate(PostBase):
     pass
 

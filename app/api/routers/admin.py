@@ -50,7 +50,8 @@ async def admin_update_poi(
         poi.type = poi_update.type
     if poi_update.imageUrl is not None:
         poi.imageUrl = poi_update.imageUrl
-        poi.geojson = {"type": "Point", "coordinates": [poi.lon, poi.lat]}
+    if poi_update.geojson is not None:
+        poi.geojson = poi_update.geojson
     if poi_update.metadata is not None:
         poi.metadata = poi_update.metadata
     if poi_update.isActive is not None:
@@ -65,17 +66,13 @@ async def admin_create_poi(
     poi_in: POICreate,
     db: AsyncSession = Depends(get_db)
 ):
-    geojson = {
-        "type": "Point",
-        "coordinates": [poi_in.lon, poi_in.lat]
-    }
+    geojson = poi_in.geojson
     
     db_poi = POIModel(
         title=poi_in.title,
         type=poi_in.type,
         imageUrl=poi_in.imageUrl,
-        lat=poi_in.lat,
-        lon=poi_in.lon,
+
         geojson=geojson,
         metadata=poi_in.metadata,
         isActive=True

@@ -24,7 +24,7 @@ All routes (except public read routes for Guests) require the Clerk JWT to be pa
 | Method | Endpoint | Query Params | Request Body | Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **GET** | `/api/posts` | `min_lat`, `max_lat`, `min_lon`, `max_lon`, `limit`, `offset` | None | `{ posts: Array<Post>, next_offset: Int }` | Returns active posts within the map's bounding box. Appends `hasLiked: boolean` if Auth header is present. |
-| **POST** | `/api/posts` | None | `{ imageUrl: string, caption: string?, lat: float, lon: float }` | `Post` (Created) | Creates a new post using the URL provided by the client's direct-to-storage upload. |
+| **POST** | `/api/posts` | None | `{ imageUrl: string, caption: string?, geojson: { "type": "Point", "coordinates": [lon, lat] } }` | `Post` (Created) | Creates a new post using the URL provided by the client's direct-to-storage upload. |
 | **GET** | `/api/users/{userId}/posts` | `limit`, `offset` | None | `Array<Post>` | Fetches the post history for a specific user's profile tab. |
 
 ---

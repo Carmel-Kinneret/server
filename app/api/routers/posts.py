@@ -18,10 +18,6 @@ router = APIRouter()
 
 @router.get("", response_model=PostListResponse)
 async def read_posts(
-    min_lat: Optional[float] = Query(None),
-    max_lat: Optional[float] = Query(None),
-    min_lon: Optional[float] = Query(None),
-    max_lon: Optional[float] = Query(None),
     limit: int = Query(20, ge=1),
     offset: int = Query(0, ge=0),
     current_user: Optional[UserModel] = Depends(get_optional_current_user),
@@ -29,15 +25,7 @@ async def read_posts(
 ):
     query = select(PostModel).where(PostModel.isActive == True)
     
-    if min_lat is not None:
-        query = query.where(PostModel.lat >= min_lat)
-    if max_lat is not None:
-        query = query.where(PostModel.lat <= max_lat)
-    if min_lon is not None:
-        query = query.where(PostModel.lon >= min_lon)
-    if max_lon is not None:
-        query = query.where(PostModel.lon <= max_lon)
-        
+    # Removed geographic filters as lat/lon are no longer stored separately
     query = query.order_by(PostModel.createdAt.desc()).offset(offset).limit(limit + 1)
     
     result = await db.execute(query)
@@ -73,17 +61,13 @@ async def create_post(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    geojson = {
-        "type": "Point",
-        "coordinates": [post_in.lon, post_in.lat]
-    }
-    
+    # Build geojson from provided geojson field (already included in post_in)
+    geojson = post_in.geojson
+
     db_post = PostModel(
         userId=current_user.id,
         imageUrl=post_in.imageUrl,
         caption=post_in.caption,
-        lat=post_in.lat,
-        lon=post_in.lon,
         geojson=geojson,
         isActive=True
     )
