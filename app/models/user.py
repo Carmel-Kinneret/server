@@ -1,7 +1,7 @@
 from datetime import datetime
 import enum
 import uuid
-from sqlalchemy import Column, String, Enum, DateTime, func
+from sqlalchemy import Column, String, Enum, DateTime, func, Integer
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
