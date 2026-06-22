@@ -26,7 +26,10 @@ async def get_user(user_id: str, session: AsyncSession = Depends(get_async_sessi
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(payload: UserCreate, session: AsyncSession = Depends(get_async_session)):
     """Create a new user."""
-    user = User(**payload.dict())
+    payload_dict = payload.dict()
+    if "role" in payload_dict and payload_dict["role"] is not None:
+        payload_dict["role"] = payload_dict["role"].value
+    user = User(**payload_dict)
     session.add(user)
     await session.commit()
     await session.refresh(user)

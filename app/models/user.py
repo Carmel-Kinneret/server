@@ -14,7 +14,7 @@ class User(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     clerkId = Column(String, unique=True, nullable=True)
-    role = Column(Enum(Role, name="Role"), default=Role.USER)
+    role = Column(String, default=Role.USER.value)
     createdAt = Column(DateTime, default=func.now())
     updatedAt = Column(DateTime, onupdate=func.now(), nullable=True)
 
