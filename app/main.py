@@ -35,13 +35,11 @@ from app.models.base import Base
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Setup - normally done by Alembic, but since we are not using it,
-    # we can create tables here for dev purposes if needed, 
-    # though it's better to run a script. We'll leave it as a comment.
-    # async with engine.begin() as conn:
-    #     await conn.run_sync(Base.metadata.create_all)
+    # Recreate database tables to match current models (development only)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
     yield
-    # Teardown
     await engine.dispose()
 
 app = FastAPI(
