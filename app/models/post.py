@@ -10,8 +10,7 @@ class Post(Base):
     userId = Column(String, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     imageUrl = Column(String, nullable=False)
     caption = Column(String, nullable=True)
-    lat = Column(Float, nullable=False)
-    lon = Column(Float, nullable=False)
+
     geojson = Column(JSON, nullable=False)  # Stores the geojson Point
     isActive = Column(Boolean, default=True, nullable=False)
     createdAt = Column(DateTime, default=func.now())

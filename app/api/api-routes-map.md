@@ -23,8 +23,8 @@ All routes (except public read routes for Guests) require the Clerk JWT to be pa
 
 | Method | Endpoint | Query Params | Request Body | Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **GET** | `/api/posts` | `min_lat`, `max_lat`, `min_lon`, `max_lon`, `limit`, `offset` | None | `{ posts: Array<Post>, next_offset: Int }` | Returns active posts within the map's bounding box. Appends `hasLiked: boolean` if Auth header is present. |
-| **POST** | `/api/posts` | None | `{ imageUrl: string, caption: string?, lat: float, lon: float }` | `Post` (Created) | Creates a new post using the URL provided by the client's direct-to-storage upload. |
+| **GET** | `/api/posts` | `sort_by`, `limit`, `offset`, `location` | None | `{ posts: Array<Post>, next_offset: Int }` | Returns active posts sorted by the provided sort option (`recent` default, `popular`, `distance`). When `sort_by=distance` a GeoJSON point must be supplied via the `location` query parameter. Appends `hasLiked: boolean` if Auth header is present. |
+| **POST** | `/api/posts` | None | `{ imageUrl: string, caption: string?, geojson: { "type": "Point", "coordinates": [lon, lat] } }` | `Post` (Created) | Creates a new post; validates that the location is within 1 km of the nearest active POI, otherwise returns a 400 error with message "Post location exceeds 1 km from the nearest point of interest". |
 | **GET** | `/api/users/{userId}/posts` | `limit`, `offset` | None | `Array<Post>` | Fetches the post history for a specific user's profile tab. |
 
 ---
@@ -40,13 +40,14 @@ All routes (except public read routes for Guests) require the Clerk JWT to be pa
 ---
 
 ### **4. Admin & Moderation**
-*Strictly enforces an `Admin` role check in the FastAPI dependency layer. Uses `PATCH` for soft deletes to maintain referential integrity.*
+*Strictly enforces an `Admin` role check in the FastAPI dependency layer. Uses `DELETE` for hard removals and `PATCH` for soft‑delete toggles where appropriate.*
 
 | Method | Endpoint | Query Params | Request Body | Response | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **PATCH** | `/api/admin/posts/{postId}` | None | `{ isActive: boolean }` | `Post` (Updated) | Soft deletes or restores a user post that violates guidelines. |
+| **DELETE** | `/api/admin/posts/{postId}` | None | None | `Post` (Deleted) | Deletes a post (hard delete). |
 | **PATCH** | `/api/admin/pois/{poiId}` | None | `{ isActive: boolean }` | `POI` (Updated) | Soft deletes or restores a POI (e.g., if a trail section closes). |
-| **POST** | `/api/admin/pois` | None | `{ title: string, type: 'EVENT', imageUrl: string?, lat: float, lon: float, metadata: JSON }` | `POI` (Created) | Creates a dynamic event marker on the map. |
+| **POST** | `/api/admin/poi` | None | `{ title: string, type: 'EVENT', imageUrl: string?, geojson: { "type": "Point", "coordinates": [lon, lat] }, metadata: JSON }` | `POI` (Created) | Creates a dynamic event marker on the map. |
+| **DELETE** | `/api/admin/pois/{poiId}` | None | None | `POI` (Deleted) | Soft deletes a POI. |
 
 ---
 
