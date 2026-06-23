@@ -86,7 +86,14 @@ async def get_current_user(
     user = result.scalars().first()
     
     if not user:
-        user = User(clerkId=clerk_id, role=Role.USER)
+        username = token_payload.get("username") or token_payload.get("name") or ""
+        if not username:
+            # Fallback to email prefix or a portion of clerk_id
+            email = token_payload.get("email") or ""
+            username = email.split("@")[0] if email else f"user_{clerk_id[-8:]}"
+        # Truncate username to 50 chars to avoid constraint violation
+        username = username[:50]
+        user = User(clerkId=clerk_id, role=Role.USER, userName=username)
         db.add(user)
         await db.commit()
         await db.refresh(user)
@@ -109,7 +116,12 @@ async def get_optional_current_user(
         user = result.scalars().first()
         
         if not user:
-            user = User(clerkId=clerk_id, role=Role.USER)
+            username = token_payload.get("username") or token_payload.get("name") or ""
+            if not username:
+                email = token_payload.get("email") or ""
+                username = email.split("@")[0] if email else f"user_{clerk_id[-8:]}"
+            username = username[:50]
+            user = User(clerkId=clerk_id, role=Role.USER, userName=username)
             db.add(user)
             await db.commit()
             await db.refresh(user)

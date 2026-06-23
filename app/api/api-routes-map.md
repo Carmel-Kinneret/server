@@ -51,6 +51,19 @@ All routes (except public read routes for Guests) require the Clerk JWT to be pa
 
 ---
 
+### **5. Users & Profiles**
+*These routes manage user registration and profiles.*
+
+| Method | Endpoint | Query Params | Request Body | Response | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/users` | None | None | `Array<UserRead>` | Retrieve all users. |
+| **GET** | `/api/users/{userId}` | None | None | `UserRead` | Retrieve a single user by ID. |
+| **POST** | `/api/users` | None | `{ userName: string, clerkId: string?, role: Role? }` | `UserRead` (Created) | Creates a new user. `userName` is required, must be non-empty, and maximum 50 characters. |
+| **PUT** | `/api/users/{userId}` | None | `{ userName: string?, role: Role? }` | `UserRead` (Updated) | Updates an existing user's details. Enforces length constraint on `userName` if supplied. |
+| **DELETE** | `/api/users/{userId}` | None | None | None (204) | Deletes a user by ID. |
+
+---
+
 ### **Standardized Error Response**
 All 400/500 errors must be wrapped in this exact JSON format so the client can handle them predictably:
 
