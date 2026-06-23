@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict
 from app.models.user import Role
 
 class UserBase(BaseModel):
+    userName: str
     clerkId: Optional[str] = None
     role: Role = Role.USER
 
@@ -11,6 +12,7 @@ class UserCreate(UserBase):
     pass
 
 class UserUpdate(BaseModel):
+    userName: Optional[str] = None
     role: Optional[Role] = None
 
 class UserInDBBase(UserBase):

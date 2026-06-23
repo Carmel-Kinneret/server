@@ -13,6 +13,7 @@ class User(Base):
     __tablename__ = "user"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    userName = Column(String(50), nullable=False, default="")
     clerkId = Column(String, unique=True, nullable=True)
     role = Column(String, default=Role.USER.value)
     createdAt = Column(DateTime, default=func.now())
