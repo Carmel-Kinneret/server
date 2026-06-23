@@ -8,13 +8,41 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-# Load .env (project root is 4 levels up from this file)
-repo_root = Path(__file__).resolve().parents[4]
-load_dotenv(repo_root / ".env")
+import base64
 
-# Clerk configuration from environment variables
-CLERK_ISSUER = os.getenv("CLERK_ISSUER", "")
-CLERK_FRONTEND_API = os.getenv("CLERK_FRONTEND_API", "")
+# Locate and load .env recursively searching up the directory tree
+current_dir = Path(__file__).resolve().parent
+while current_dir != current_dir.parent:
+    env_path = current_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        break
+    current_dir = current_dir.parent
+else:
+    load_dotenv()
+
+CLERK_PUBLISHABLE_KEY = os.getenv("CLERK_PUBLISHABLE_KEY", "")
+CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY", "")
+
+# Extract frontend api and issuer from publishable key if not set explicitly
+derived_frontend_api = ""
+if CLERK_PUBLISHABLE_KEY:
+    try:
+        parts = CLERK_PUBLISHABLE_KEY.split("_")
+        if len(parts) >= 3:
+            encoded_part = parts[2]
+            missing_padding = len(encoded_part) % 4
+            if missing_padding:
+                encoded_part += "=" * (4 - missing_padding)
+            decoded = base64.b64decode(encoded_part).decode("utf-8")
+            if decoded.endswith("$"):
+                decoded = decoded[:-1]
+            derived_frontend_api = decoded
+    except Exception:
+        pass
+
+CLERK_FRONTEND_API = os.getenv("CLERK_FRONTEND_API", derived_frontend_api)
+CLERK_ISSUER = os.getenv("CLERK_ISSUER", f"https://{CLERK_FRONTEND_API}" if CLERK_FRONTEND_API else "")
 from app.core.exceptions import UnauthorizedException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
