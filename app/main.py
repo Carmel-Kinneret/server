@@ -1,44 +1,109 @@
+"""Application entry point for the Carmel Kinneret Server.
+
+This module creates the FastAPI application, loads environment variables,
+configures CORS, registers global exception handlers, and includes the
+router that aggregates all API sub‑routers.
+
+The ``db_ping`` endpoint provides a lightweight health‑check that validates
+database connectivity.
+"""
+
+# Standard library imports
+import os
 import contextlib
-from fastapi import FastAPI
+from pathlib import Path
+
+# Third‑party imports
+from dotenv import load_dotenv
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.exceptions import AppException, app_exception_handler
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+# Local imports – exception handlers and database utilities
+from app.core.exceptions import (
+    AppException,
+    app_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+    generic_exception_handler,
+)
+from app.db.database import get_async_session
 from app.api.router import api_router
-from app.db.database import engine
-from app.models.base import Base
 
-@contextlib.asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Setup - normally done by Alembic, but since we are not using it,
-    # we can create tables here for dev purposes if needed, 
-    # though it's better to run a script. We'll leave it as a comment.
-    # async with engine.begin() as conn:
-    #     await conn.run_sync(Base.metadata.create_all)
-    yield
-    # Teardown
-    await engine.dispose()
+# ---------------------------------------------------------------------------
+# Load environment variables
+# ---------------------------------------------------------------------------
+# Locate and load .env recursively searching up the directory tree
+current_dir = Path(__file__).resolve().parent
+while current_dir != current_dir.parent:
+    env_path = current_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        break
+    current_dir = current_dir.parent
+else:
+    load_dotenv()
 
+# ---------------------------------------------------------------------------
+# Core configuration values
+# ---------------------------------------------------------------------------
+DATABASE_URL = os.getenv("DATABASE_URL")
+PROJECT_NAME = os.getenv("PROJECT_NAME", "Carmel Kinneret Server")
+API_V1_STR = os.getenv("API_V1_STR", "/api")
+
+# ---------------------------------------------------------------------------
+# FastAPI application instance
+# ---------------------------------------------------------------------------
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    lifespan=lifespan
+    title=PROJECT_NAME,
+    openapi_url=f"{API_V1_STR}/openapi.json",
 )
 
-# Set up CORS
+# ---------------------------------------------------------------------------
+# CORS configuration – allow all origins for development; adjust for prod.
+# ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Update for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Global Exception Handlers
+# ---------------------------------------------------------------------------
+# Register global exception handlers
+# ---------------------------------------------------------------------------
 app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
 
-# Include API Router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+# ---------------------------------------------------------------------------
+# Include the aggregated API router
+# ---------------------------------------------------------------------------
+app.include_router(api_router, prefix=API_V1_STR)
 
+# ---------------------------------------------------------------------------
+# Simple health endpoints
+# ---------------------------------------------------------------------------
 @app.get("/")
-async def root():
-    return {"message": f"Welcome to {settings.PROJECT_NAME} API"}
+async def root() -> dict:
+    """Root endpoint returning a welcome message."""
+    return {"message": f"Welcome to {PROJECT_NAME} API"}
+
+
+@app.get("/db/ping")
+async def db_ping(db: AsyncSession = Depends(get_async_session)) -> dict:
+    """Health‑check endpoint that verifies DB connectivity.
+
+    Executes ``SELECT 1`` and returns ``{"status": "ok", "result": 1}`` on
+    success, otherwise returns an error dictionary.
+    """
+    try:
+        result = await db.execute(text("SELECT 1"))
+        return {"status": "ok", "result": result.scalar()}
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}

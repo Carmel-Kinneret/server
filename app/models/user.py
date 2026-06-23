@@ -1,7 +1,7 @@
 from datetime import datetime
 import enum
 import uuid
-from sqlalchemy import Column, String, Enum, DateTime, func
+from sqlalchemy import Column, String, Enum, DateTime, func, Integer
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
@@ -10,11 +10,12 @@ class Role(str, enum.Enum):
     ADMIN = "ADMIN"
 
 class User(Base):
-    __tablename__ = "User"
+    __tablename__ = "user"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    userName = Column(String(50), nullable=False, default="")
     clerkId = Column(String, unique=True, nullable=True)
-    role = Column(Enum(Role, name="Role"), default=Role.USER)
+    role = Column(String, default=Role.USER.value)
     createdAt = Column(DateTime, default=func.now())
     updatedAt = Column(DateTime, onupdate=func.now(), nullable=True)
 
