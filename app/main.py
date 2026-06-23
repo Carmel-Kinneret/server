@@ -36,9 +36,16 @@ from app.api.router import api_router
 # ---------------------------------------------------------------------------
 # Load environment variables
 # ---------------------------------------------------------------------------
-# The .env file resides in the project root (three levels up from this file).
-repo_root = Path(__file__).resolve().parents[3]
-load_dotenv(repo_root / ".env")
+# Locate and load .env recursively searching up the directory tree
+current_dir = Path(__file__).resolve().parent
+while current_dir != current_dir.parent:
+    env_path = current_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        break
+    current_dir = current_dir.parent
+else:
+    load_dotenv()
 
 # ---------------------------------------------------------------------------
 # Core configuration values

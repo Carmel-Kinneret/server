@@ -5,9 +5,16 @@ from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-# Load environment variables from the project's .env (located at server/.env)
-repo_root = Path(__file__).resolve().parents[2]
-load_dotenv(repo_root / ".env")
+# Locate and load .env recursively searching up the directory tree
+current_dir = Path(__file__).resolve().parent
+while current_dir != current_dir.parent:
+    env_path = current_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        break
+    current_dir = current_dir.parent
+else:
+    load_dotenv()
 
 # Retrieve DATABASE_URL from env
 DATABASE_URL = os.getenv("DATABASE_URL")

@@ -4,9 +4,16 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
 
-# Load .env from project root (4 levels up from this file)
-repo_root = Path(__file__).resolve().parents[4]
-load_dotenv(repo_root / ".env")
+# Locate and load .env recursively searching up the directory tree
+current_dir = Path(__file__).resolve().parent
+while current_dir != current_dir.parent:
+    env_path = current_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        break
+    current_dir = current_dir.parent
+else:
+    load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")

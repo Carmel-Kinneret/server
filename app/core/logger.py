@@ -2,13 +2,17 @@ import logging
 import os
 from pathlib import Path
 
-# Load .env if not already loaded elsewhere (the main app loads it)
-# We'll still attempt to load LOG_LEVEL from the same .env for safety.
-repo_root = Path(__file__).resolve().parents[3]
-env_path = repo_root / ".env"
-if env_path.is_file():
-    from dotenv import load_dotenv
-    load_dotenv(env_path)
+from dotenv import load_dotenv
+# Locate and load .env recursively searching up the directory tree
+current_dir = Path(__file__).resolve().parent
+while current_dir != current_dir.parent:
+    env_path = current_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+        break
+    current_dir = current_dir.parent
+else:
+    load_dotenv()
 
 def get_logger(name: str = "app") -> logging.Logger:
     """Return a configured logger.
